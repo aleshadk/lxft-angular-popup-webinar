@@ -17,17 +17,18 @@ export class PopupService {
   public show<TResult>(title: string, child: ComponentRef<IClosable<TResult>>): Promise<TResult | null> {
     const popup = this.create(PopupComponent, child);
     popup.instance.title = title;
-    popup.changeDetectorRef.detectChanges();
-    child.changeDetectorRef.detectChanges();
+    const domElem = (popup.hostView as EmbeddedViewRef<any>)
+      .rootNodes[0] as HTMLElement;
 
-    document.body.appendChild(popup.location.nativeElement); // TODO: is it ok? appRef?
-
+    document.body.appendChild(domElem);
     return this.init(popup, child);
   }
 
   public create<TComponent>(component: Type<TComponent>, child?: ComponentRef<{}>): ComponentRef<TComponent> {
     const factory = this.factoryResolver.resolveComponentFactory(component);
-    return factory.create(this.injector, child ? [[child.location.nativeElement]] : undefined);
+    const componentRef = factory.create(this.injector, child ? [[child.location.nativeElement]] : undefined);
+    this.appRef.attachView(componentRef.hostView);
+    return componentRef;
   }
 
   private init<TResult>(popup: ComponentRef<PopupComponent>, child: ComponentRef<IClosable<TResult>>): Promise<TResult> {
