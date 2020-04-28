@@ -17,6 +17,8 @@ export class AppComponent {
   private show(): void {
     const child = this.popupService.create(TestComponent);
     child.instance.title = '123';
-    this.popupService.show('hello from service!', child);
+    this.popupService.show('hello from service!', child).then(z => {
+      console.warn('result', z);
+    });
   }
 }

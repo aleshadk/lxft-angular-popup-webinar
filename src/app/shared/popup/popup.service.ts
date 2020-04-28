@@ -1,5 +1,6 @@
 import { Injectable, ComponentFactoryResolver, Injector, ComponentRef, Type, ApplicationRef } from '@angular/core';
 import { PopupComponent } from './popup.component';
+import { IClosable } from './popup.models';
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +13,7 @@ export class PopupService {
     private appRef: ApplicationRef
   ) { }
 
-  public show(title: string, child: ComponentRef<{}>): void {
+  public show<TResult>(title: string, child: ComponentRef<IClosable<TResult>>): Promise<TResult | null> {
     const popup = this.create(PopupComponent, child);
     popup.instance.title = title;
     popup.changeDetectorRef.detectChanges();
@@ -20,7 +21,7 @@ export class PopupService {
 
     document.body.appendChild(popup.location.nativeElement); // TODO: is it ok? appRef?
 
-    this.init(popup);
+    return this.init(popup, child);
   }
 
   public create<TComponent>(component: Type<TComponent>, child?: ComponentRef<{}>): ComponentRef<TComponent> {
@@ -28,10 +29,24 @@ export class PopupService {
     return factory.create(this.injector, child ? [[child.location.nativeElement]] : undefined);
   }
 
-  private init(popup: ComponentRef<PopupComponent>): void {
-    popup.instance.closed.subscribe(() => {
-      this.appRef.detachView(popup.hostView);
-      popup.destroy();
+  private init<TResult>(popup: ComponentRef<PopupComponent>, child: ComponentRef<IClosable<TResult>>): Promise<TResult> {
+    return new Promise<TResult>(resolve => {
+      popup.instance.closed.subscribe(() => {
+        this.destroy([popup, child]);
+        resolve(null);
+      });
+
+      child.instance.closed.subscribe(result => {
+        this.destroy([popup, child]);
+        resolve(result);
+      });
+    });
+  }
+
+  private destroy(components: ComponentRef<{}>[]): void {
+    components.forEach(z => {
+      this.appRef.detachView(z.hostView);
+      z.destroy();
     });
   }
 
