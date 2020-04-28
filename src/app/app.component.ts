@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { PopupService } from './shared/popup/popup.service';
+import { TestComponent } from './test/test.component';
 
 @Component({
   selector: 'app-root',
@@ -14,6 +15,8 @@ export class AppComponent {
   }
 
   private show(): void {
-    this.popupService.show('hello from service!');
+    const child = this.popupService.create(TestComponent);
+    child.instance.title = '123';
+    this.popupService.show('hello from service!', child);
   }
 }

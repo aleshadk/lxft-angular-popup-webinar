@@ -11,17 +11,18 @@ export class PopupService {
     private injector: Injector
   ) { }
 
-  public show(title: string): void {
-    const popup = this.create(PopupComponent);
+  public show(title: string, child: ComponentRef<{}>): void {
+    const popup = this.create(PopupComponent, child);
     popup.instance.title = title;
     popup.changeDetectorRef.detectChanges();
+    child.changeDetectorRef.detectChanges();
 
     document.body.appendChild(popup.location.nativeElement); // TODO: is it ok?
   }
 
-  public create<TComponent>(component: Type<TComponent>): ComponentRef<TComponent> {
+  public create<TComponent>(component: Type<TComponent>, child?: ComponentRef<{}>): ComponentRef<TComponent> {
     const factory = this.factoryResolver.resolveComponentFactory(component);
-    return factory.create(this.injector);
+    return factory.create(this.injector, child ? [[child.location.nativeElement]] : undefined);
   }
 
 }
