@@ -1,6 +1,7 @@
 import { Injectable, ComponentFactoryResolver, Injector, ComponentRef, Type, ApplicationRef } from '@angular/core';
 import { PopupComponent } from './popup.component';
 import { IClosable } from './popup.models';
+import { Subscription } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -31,15 +32,17 @@ export class PopupService {
 
   private init<TResult>(popup: ComponentRef<PopupComponent>, child: ComponentRef<IClosable<TResult>>): Promise<TResult> {
     return new Promise<TResult>(resolve => {
-      popup.instance.closed.subscribe(() => {
-        this.destroy([popup, child]);
-        resolve(null);
+      const sub = new Subscription();
+      const components = [popup, child];
+
+      components.forEach(z => {
+        sub.add(z.instance.closed.subscribe(result => {
+          resolve(result);
+          sub.unsubscribe();
+          this.destroy(components);
+        }));
       });
 
-      child.instance.closed.subscribe(result => {
-        this.destroy([popup, child]);
-        resolve(result);
-      });
     });
   }
 
