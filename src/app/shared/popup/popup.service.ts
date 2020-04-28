@@ -1,4 +1,4 @@
-import { Injectable, ComponentFactoryResolver, Injector, ComponentRef, Type } from '@angular/core';
+import { Injectable, ComponentFactoryResolver, Injector, ComponentRef, Type, ApplicationRef } from '@angular/core';
 import { PopupComponent } from './popup.component';
 
 @Injectable({
@@ -8,7 +8,8 @@ export class PopupService {
 
   constructor(
     private factoryResolver: ComponentFactoryResolver,
-    private injector: Injector
+    private injector: Injector,
+    private appRef: ApplicationRef
   ) { }
 
   public show(title: string, child: ComponentRef<{}>): void {
@@ -17,12 +18,21 @@ export class PopupService {
     popup.changeDetectorRef.detectChanges();
     child.changeDetectorRef.detectChanges();
 
-    document.body.appendChild(popup.location.nativeElement); // TODO: is it ok?
+    document.body.appendChild(popup.location.nativeElement); // TODO: is it ok? appRef?
+
+    this.init(popup);
   }
 
   public create<TComponent>(component: Type<TComponent>, child?: ComponentRef<{}>): ComponentRef<TComponent> {
     const factory = this.factoryResolver.resolveComponentFactory(component);
     return factory.create(this.injector, child ? [[child.location.nativeElement]] : undefined);
+  }
+
+  private init(popup: ComponentRef<PopupComponent>): void {
+    popup.instance.closed.subscribe(() => {
+      this.appRef.detachView(popup.hostView);
+      popup.destroy();
+    });
   }
 
 }

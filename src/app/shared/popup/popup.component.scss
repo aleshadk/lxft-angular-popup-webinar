@@ -27,6 +27,15 @@
     background: #356dad;
     color: white;
     padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    .close-icon {
+        display: block;
+        background: white;
+        width: 15px;
+        height: 15px;
+        cursor: pointer;
+    }
 }
 
 .body {
