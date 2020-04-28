@@ -123,6 +123,10 @@
           }
         }
       }
-    }},
-  "defaultProject": "lxft-angular-popup"
+    }
+  },
+  "defaultProject": "lxft-angular-popup",
+  "cli": {
+    "analytics": false
+  }
 }
